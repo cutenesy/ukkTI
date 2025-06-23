@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Mahasiswa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logout-btn {
+            background-color: white;
+            color: var(--primary);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .action-btn {
+            padding: 6px 10px;
+            margin: 0 3px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .edit-btn {
+            background-color: var(--warning);
+        }
+        
+        .delete-btn {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .add-btn {
+            background-color: var(--success);
+            color: white;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-group input, 
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .submit-btn {
+            background-color: var(--success);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .cancel-btn {
+            background-color: var(--danger);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Manajemen Data Mahasiswa</h1>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+        
+        <div class="card">
+            <button class="add-btn" onclick="showModal()">
+                <i class="fas fa-plus"></i> Tambah Mahasiswa
+            </button>
+            
+            <table id="studentsTable">
+                <thead>
+                    <tr>
+                        <th>NIM</th>
+                        <th>Nama</th>
+                        <th>Prodi</th>
+                        <th>Angkatan</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="studentData">
+                    <!-- Data akan diisi oleh JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Mahasiswa -->
+    <div id="studentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Tambah Data Mahasiswa</h2>
+                <button class="close-btn" onclick="hideModal()">&times;</button>
+            </div>
+            <form id="studentForm">
+                <div class="form-group">
+                    <label for="nim">NIM</label>
+                    <input type="text" id="nim" required>
+                </div>
+                <div class="form-group">
+                    <label for="nama">Nama Lengkap</label>
+                    <input type="text" id="nama" required>
+                </div>
+                <div class="form-group">
+                    <label for="prodi">Program Studi</label>
+                    <select id="prodi" required>
+                        <option value="">Pilih Prodi</option>
+                         <option value="Teknik Informatika">Teknik Informatika</option>
+                        <option value="Teknik Komputer">Teknik Komputer</option>
+                        <option value="Teknologi Informatika Multimedia">Teknologi Informatika Multimedia</option>
+                        <option value="Teknik Rekayasa Komputer">Teknik Rekayasa Komputer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="angkatan">Angkatan</label>
+                    <select id="angkatan" required>
+                        <option value="">Pilih Angkatan</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="cancel-btn" onclick="hideModal()">Batal</button>
+                    <button type="submit" class="submit-btn">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize student data
+        let students = JSON.parse(localStorage.getItem('students')) || [
+            { nim: '20230001', nama: 'Budi Santoso', prodi: 'Teknik Informatika', angkatan: '2023' },
+            { nim: '20230002', nama: 'Ani Wijaya', prodi: 'Teknik Komputer', angkatan: '2023' }
+        ];
+
+        // Check login status
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'index.html';
+        }
+
+        // Load student data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            renderStudentTable();
+        });
+
+        // Function to render student table
+        function renderStudentTable() {
+            const tbody = document.getElementById('studentData');
+            tbody.innerHTML = '';
+            
+            students.forEach((student, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.nim}</td>
+                    <td>${student.nama}</td>
+                    <td>${student.prodi}</td>
+                    <td>${student.angkatan}</td>
+                    <td>
+                        <button class="action-btn edit-btn" onclick="editStudent(${index})">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="action-btn delete-btn" onclick="deleteStudent(${index})">
+                            <i class="fas fa-trash"></i> Hapus
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Show modal function
+        function showModal() {
+            document.getElementById('studentModal').style.display = 'flex';
+            document.getElementById('studentForm').reset();
+            document.querySelector('.modal-header h2').textContent = 'Tambah Data Mahasiswa';
+            document.getElementById('studentForm').setAttribute('data-mode', 'add');
+        }
+
+        // Hide modal function
+        function hideModal() {
+            document.getElementById('studentModal').style.display = 'none';
+        }
+
+        // Handle form submission
+        document.getElementById('studentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const nim = document.getElementById('nim').value;
+            const nama = document.getElementById('nama').value;
+            const prodi = document.getElementById('prodi').value;
+            const angkatan = document.getElementById('angkatan').value;
+            
+            const mode = this.getAttribute('data-mode');
+            
+            if (mode === 'add') {
+                // Add new student
+                students.push({ nim, nama, prodi, angkatan });
+            } else {
+                // Edit existing student
+                const index = parseInt(this.getAttribute('data-index'));
+                students[index] = { nim, nama, prodi, angkatan };
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('students', JSON.stringify(students));
+            
+            // Refresh table and hide modal
+            renderStudentTable();
+            hideModal();
+        });
+
+        // Edit student function
+        function editStudent(index) {
+            const student = students[index];
+            
+            document.getElementById('nim').value = student.nim;
+            document.getElementById('nama').value = student.nama;
+            document.getElementById('prodi').value = student.prodi;
+            document.getElementById('angkatan').value = student.angkatan;
+            
+            document.querySelector('.modal-header h2').textContent = 'Edit Data Mahasiswa';
+            document.getElementById('studentForm').setAttribute('data-mode', 'edit');
+            document.getElementById('studentForm').setAttribute('data-index', index);
+            
+            document.getElementById('studentModal').style.display = 'flex';
+        }
+
+        // Delete student function
+        function deleteStudent(index) {
+            if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                students.splice(index, 1);
+                localStorage.setItem('students', JSON.stringify(students));
+                renderStudentTable();
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'logout.php.html';
+        }
+    </script>
+</body>
+</html>
